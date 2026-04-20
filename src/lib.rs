@@ -149,8 +149,9 @@ impl FleetGraph {
                 new_edges.push(format!("{}→{}", edge.source, edge.target));
                 let new_weight = weight + edge.weight;
                 if edge.target == target {
+                    let hops = new_path.len() - 1;
                     return Some(GraphPath { nodes: new_path, edges: new_edges,
-                                           total_weight: new_weight, hops: new_path.len() - 1 });
+                                           total_weight: new_weight, hops });
                 }
                 visited.insert(edge.target.clone());
                 queue.push_back((edge.target.clone(), new_path, new_edges, new_weight));
@@ -164,8 +165,10 @@ impl FleetGraph {
         use std::collections::BinaryHeap;
         use std::cmp::Ordering;
 
-        #[derive(Eq, PartialEq)]
+        #[derive(PartialEq)]
         struct MinDist(f64, String);
+
+        impl Eq for MinDist {}
 
         impl Ord for MinDist {
             fn cmp(&self, other: &Self) -> Ordering {
@@ -272,17 +275,18 @@ impl FleetGraph {
         let mut rank: HashMap<String, f64> = self.nodes.keys()
             .map(|k| (k.clone(), 1.0 / n)).collect();
 
+        let empty = Vec::new();
         for _ in 0..iterations {
             let mut new_rank: HashMap<String, f64> = HashMap::new();
             for node_id in self.nodes.keys() {
-                let out_edges = self.adjacency.get(node_id).unwrap_or(&vec![]);
+                let out_edges = self.adjacency.get(node_id).unwrap_or(&empty);
                 if out_edges.is_empty() { continue; }
                 let share = rank[node_id] / out_edges.len() as f64;
                 for edge in out_edges {
                     *new_rank.entry(edge.target.clone()).or_insert(0.0) += share;
                 }
             }
-            for (k, v) in new_rank.iter_mut() {
+            for (_k, v) in new_rank.iter_mut() {
                 *v = damping * *v + (1.0 - damping) / n;
             }
             rank = new_rank;
