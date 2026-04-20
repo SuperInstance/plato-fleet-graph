@@ -1,0 +1,6 @@
+Metadata-Version: 2.4
+Name: plato-fleet-graph
+Version: 0.1.0
+Summary: Fleet dependency graph — crate tracking, impact analysis, layer detection
+License: MIT
+Requires-Python: >=3.8
